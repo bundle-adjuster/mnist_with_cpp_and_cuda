@@ -1,0 +1,39 @@
+# Build directories
+build/
+cmake-build-*/
+*.o
+*.so
+*.a
+
+# Executables
+MNIST_ML_CUDA
+*.exe
+
+# Data files
+data/
+*.mat
+
+# Model files
+*.bin
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+mlcpp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
