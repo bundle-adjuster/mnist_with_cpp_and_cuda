@@ -68,3 +68,14 @@ message(STATUS "CUDA found: ${CUDA_FOUND}")
 message(STATUS "CUDA version: ${CUDA_VERSION}")
 message(STATUS "MatIO library: ${MATIO_LIB}")
 message(STATUS "MatIO include: ${MATIO_INCLUDE_DIR}")
+
+# Test predictions executable
+add_executable(test_predictions 
+    test_predictions.cpp
+    src/neural_network.cpp
+    src/mat_reader.cpp
+    ${CUDA_SOURCES}
+)
+target_include_directories(test_predictions PRIVATE ${CUDA_INCLUDE_DIRS})
+target_link_libraries(test_predictions ${MATIO_LIB} ${CUDA_LIBRARIES} ${CUDA_CUDART_LIBRARY})
+set_property(TARGET test_predictions PROPERTY CUDA_SEPARABLE_COMPILATION ON)
