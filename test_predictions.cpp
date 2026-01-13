@@ -20,7 +20,7 @@ int main() {
   }
 
   // Test first 20 samples
-  std::cout << "\nPredictions for first 20 test samples:" << std::endl;
+  std::cout << "\nPredictions for first 100 test samples:" << std::endl;
   std::cout << std::setw(5) << "Index" << std::setw(10) << "True"
             << std::setw(10) << "Pred" << std::endl;
   std::cout << std::string(25, '-') << std::endl;
