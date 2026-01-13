@@ -79,3 +79,56 @@ add_executable(test_predictions
 target_include_directories(test_predictions PRIVATE ${CUDA_INCLUDE_DIRS})
 target_link_libraries(test_predictions ${MATIO_LIB} ${CUDA_LIBRARIES} ${CUDA_CUDART_LIBRARY})
 set_property(TARGET test_predictions PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+
+# Google Test setup
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.14.0
+)
+
+# For CMake 3.14+, we can use FetchContent_MakeAvailable
+# For older versions, use FetchContent_GetProperties
+if(CMAKE_VERSION VERSION_LESS "3.14")
+    FetchContent_GetProperties(googletest)
+    if(NOT googletest_POPULATED)
+        FetchContent_Populate(googletest)
+        add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+    endif()
+else()
+    set(FETCHCONTENT_QUIET OFF)
+    FetchContent_MakeAvailable(googletest)
+endif()
+
+# Enable testing
+enable_testing()
+
+# Test executable
+# Using custom main for flexibility (can add custom initialization if needed)
+add_executable(run_tests
+    tests/test_main.cpp
+    tests/test_neural_network.cpp
+    src/neural_network.cpp
+    src/mat_reader.cpp
+    ${CUDA_SOURCES}
+)
+
+target_include_directories(run_tests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/include
+    ${MATIO_INCLUDE_DIR}
+    ${CUDA_INCLUDE_DIRS}
+)
+
+target_link_libraries(run_tests
+    GTest::gtest
+    GTest::gmock
+    ${MATIO_LIB}
+    ${CUDA_LIBRARIES}
+    ${CUDA_CUDART_LIBRARY}
+)
+
+set_property(TARGET run_tests PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+
+# Register tests with CTest
+add_test(NAME NeuralNetworkTests COMMAND run_tests)

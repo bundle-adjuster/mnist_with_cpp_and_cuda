@@ -7,6 +7,8 @@
 #include <cmath>
 #include <algorithm>
 
+#define DEBUG 0
+
 #define CUDA_CHECK(call) \
     do { \
         cudaError_t err = call; \
@@ -378,13 +380,14 @@ void NeuralNetwork::train_batch(const float* inputs, const int* targets, int bat
         d_deltas_[num_layers_ - 2], output_size, batch_size
     );
     
+    #if DEBUG
     // Diagnostic: Print output delta stats (first batch only, to avoid spam)
     static int batch_count = 0;
     if (batch_count == 0) {
         std::cout << "\n=== Gradient Diagnostics (First Batch) ===" << std::endl;
         print_gradient_stats(num_layers_ - 2, batch_size);
     }
-    
+    #endif
     // Hidden layers delta - use pre-activations for Leaky ReLU derivative
     for (int i = num_layers_ - 3; i >= 0; i--) {
         cuda_compute_hidden_delta(
@@ -392,17 +395,18 @@ void NeuralNetwork::train_batch(const float* inputs, const int* targets, int bat
             d_pre_activations_[i + 1], d_deltas_[i],  // Use pre-activation for Leaky ReLU derivative
             layer_sizes_[i + 1], layer_sizes_[i + 2], batch_size
         );
-        
+        #if DEBUG
         // Diagnostic: Print hidden delta stats (first batch only)
         if (batch_count == 0) {
             print_gradient_stats(i, batch_size);
         }
+        #endif
     }
     
     // Update weights and biases
     // For layer i, we need the input to that layer (output of previous layer after activation)
     const float* prev_layer_output = d_input_buffer_;  // Input layer (no activation)
-    
+    #if DEBUG
     // Store weights before update for verification (first batch only)
     std::vector<std::vector<float>> weights_before;
     if (batch_count == 0) {
@@ -411,7 +415,7 @@ void NeuralNetwork::train_batch(const float* inputs, const int* targets, int bat
             weights_before.push_back(h_weights_[i]);
         }
     }
-    
+    #endif
     for (int i = 0; i < num_layers_ - 1; i++) {
         int layer_input_size = layer_sizes_[i];
         int layer_output_size = layer_sizes_[i + 1];
@@ -431,6 +435,7 @@ void NeuralNetwork::train_batch(const float* inputs, const int* targets, int bat
     }
     
     // Verify weights were updated (first batch only)
+    #if DEBUG
     if (batch_count == 0) {
         copy_weights_to_host();
         std::cout << "\n=== Weight Update Verification ===" << std::endl;
@@ -448,7 +453,9 @@ void NeuralNetwork::train_batch(const float* inputs, const int* targets, int bat
         std::cout << "====================================\n" << std::endl;
         batch_count++;
     }
+    #endif
 }
+
 
 int NeuralNetwork::predict(const float* input) {
     float* output = new float[layer_sizes_[num_layers_ - 1]];
