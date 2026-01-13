@@ -48,7 +48,7 @@ TEST(NeuralNetworkTest, Prediction) {
     
     int predicted = nn.predict(input.data());
     
-    // Should return a valid class index (0-9 for MNIST)
+    // Should return a valid class index (0-9 for MNIST/Fashion-MNIST)
     EXPECT_GE(predicted, 0);
     EXPECT_LT(predicted, 10);
 }

@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-struct MNISTData {
-    std::vector<float> images;  // Flattened images: [num_samples * 28 * 28]
+struct ImageData {
+    std::vector<float> images;  // Flattened images: [num_samples * height * width]
     std::vector<int> labels;     // Labels: [num_samples]
     int num_samples;
     int image_height;
@@ -19,8 +19,13 @@ struct MNISTData {
 
 class MatReader {
 public:
-    static MNISTData load_mnist(const std::string& mat_file);
-    static void print_info(const MNISTData& data);
+    static ImageData load_dataset(const std::string& mat_file);
+    static void print_info(const ImageData& data);
+    
+    // Legacy function name for backward compatibility
+    static ImageData load_mnist(const std::string& mat_file) {
+        return load_dataset(mat_file);
+    }
 };
 
 #endif // MAT_READER_H

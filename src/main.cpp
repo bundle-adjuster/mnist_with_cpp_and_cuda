@@ -21,9 +21,9 @@ int main(int argc, char* argv[]) {
     float learning_rate = (argc > 4) ? std::stof(argv[4]) : 0.01f;
     int batch_size = (argc > 5) ? std::stoi(argv[5]) : 32;
     
-    std::cout << "Loading MNIST data..." << std::endl;
-    MNISTData train_data = MatReader::load_mnist(train_file);
-    MNISTData test_data = MatReader::load_mnist(test_file);
+    std::cout << "Loading dataset..." << std::endl;
+    ImageData train_data = MatReader::load_dataset(train_file);
+    ImageData test_data = MatReader::load_dataset(test_file);
     
     MatReader::print_info(train_data);
     MatReader::print_info(test_data);
@@ -118,8 +118,16 @@ int main(int argc, char* argv[]) {
     std::cout << "Test Accuracy: " << std::setprecision(2) 
               << (test_accuracy * 100) << "%" << std::endl;
     
-    // Save model
-    std::string model_file = "mnist_model.bin";
+    // Save model (extract base name from train_file for model name)
+    std::string model_file = "model.bin";
+    // Try to infer dataset name from file path
+    size_t last_slash = train_file.find_last_of("/\\");
+    std::string filename = (last_slash != std::string::npos) ? train_file.substr(last_slash + 1) : train_file;
+    if (filename.find("mnist") != std::string::npos) {
+        model_file = "mnist_model.bin";
+    } else if (filename.find("fashion") != std::string::npos) {
+        model_file = "fashion_mnist_model.bin";
+    }
     std::cout << "\nSaving model to " << model_file << std::endl;
     nn.save_weights(model_file);
     

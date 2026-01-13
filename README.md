@@ -1,10 +1,11 @@
-# MNIST Machine Learning with CUDA
+# MNIST & Fashion-MNIST Machine Learning with CUDA
 
-A C++ implementation of a neural network for MNIST digit classification using CUDA for accelerated backpropagation.
+A C++ implementation of a neural network for MNIST digit classification and Fashion-MNIST clothing classification using CUDA for accelerated backpropagation.
 
 ## Features
 
 - **CUDA-accelerated backpropagation**: All gradient computations run on GPU
+- **Multiple datasets**: Supports both MNIST and Fashion-MNIST datasets
 - **Flexible data loading**: Python script supports both PyTorch and TensorFlow datasets
 - **MAT file format**: Data stored in .mat format for easy C++ consumption
 - **Multi-layer neural network**: Configurable architecture with ReLU activations and softmax output
@@ -51,14 +52,32 @@ pip install numpy scipy tensorflow
 
 ## Building the Project
 
-1. **Download MNIST data:**
+1. **Download dataset data:**
+
+For MNIST:
 ```bash
-python download_mnist.py
+python download_mnist.py --dataset mnist
+```
+
+For Fashion-MNIST:
+```bash
+python download_mnist.py --dataset fashion
+```
+
+Or download both:
+```bash
+python download_mnist.py --dataset mnist
+python download_mnist.py --dataset fashion
 ```
 
 This will create a `data/` directory with:
-- `mnist_train.mat`
-- `mnist_test.mat`
+- `mnist_train.mat` and `mnist_test.mat` (for MNIST)
+- `fashion_mnist_train.mat` and `fashion_mnist_test.mat` (for Fashion-MNIST)
+
+You can also specify the source (PyTorch or TensorFlow) and output directory:
+```bash
+python download_mnist.py --dataset fashion --source torch --output-dir data
+```
 
 2. **Build the C++ project:**
 ```bash
@@ -69,13 +88,36 @@ make
 ```
 
 3. **Run training:**
+
+For MNIST:
 ```bash
 ./MNIST_ML_CUDA ../data/mnist_train.mat ../data/mnist_test.mat [epochs] [learning_rate] [batch_size]
 ```
 
-Example:
+For Fashion-MNIST:
 ```bash
+./MNIST_ML_CUDA ../data/fashion_mnist_train.mat ../data/fashion_mnist_test.mat [epochs] [learning_rate] [batch_size]
+```
+
+Examples:
+```bash
+# Train on MNIST
 ./MNIST_ML_CUDA ../data/mnist_train.mat ../data/mnist_test.mat 10 0.01 32
+
+# Train on Fashion-MNIST
+./MNIST_ML_CUDA ../data/fashion_mnist_train.mat ../data/fashion_mnist_test.mat 10 0.01 32
+```
+
+4. **Test predictions:**
+
+For MNIST:
+```bash
+./test_predictions ../data/mnist_test.mat mnist_model.bin
+```
+
+For Fashion-MNIST:
+```bash
+./test_predictions ../data/fashion_mnist_test.mat fashion_mnist_model.bin
 ```
 
 ## Project Structure
@@ -84,7 +126,7 @@ Example:
 ml_cpp/
 ├── CMakeLists.txt          # Build configuration
 ├── README.md               # This file
-├── download_mnist.py       # Python script to download and convert MNIST
+├── download_mnist.py       # Python script to download and convert MNIST/Fashion-MNIST
 ├── include/                # Header files
 │   ├── neural_network.h    # Neural network class definition
 │   ├── mat_reader.h        # MAT file reader
@@ -99,12 +141,28 @@ ml_cpp/
 ## Architecture
 
 The default neural network architecture is:
-- **Input layer**: 784 neurons (28×28 MNIST images)
+- **Input layer**: 784 neurons (28×28 images for both MNIST and Fashion-MNIST)
 - **Hidden layer 1**: 128 neurons with ReLU activation
 - **Hidden layer 2**: 64 neurons with ReLU activation
-- **Output layer**: 10 neurons with softmax activation (one per digit class)
+- **Output layer**: 10 neurons with softmax activation (one per class)
+  - For MNIST: 10 digit classes (0-9)
+  - For Fashion-MNIST: 10 clothing classes (T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot)
 
 You can modify the architecture in `src/main.cpp` by changing the `layer_sizes` vector.
+
+## Fashion-MNIST Classes
+
+Fashion-MNIST has 10 classes:
+0. T-shirt/top
+1. Trouser
+2. Pullover
+3. Dress
+4. Coat
+5. Sandal
+6. Shirt
+7. Sneaker
+8. Bag
+9. Ankle boot
 
 ## CUDA Implementation
 

@@ -3,13 +3,13 @@
 #include <matio.h>
 #include <stdexcept>
 
-MNISTData MatReader::load_mnist(const std::string &mat_file) {
+ImageData MatReader::load_dataset(const std::string &mat_file) {
   mat_t *matfp = Mat_Open(mat_file.c_str(), MAT_ACC_RDONLY);
   if (matfp == nullptr) {
     throw std::runtime_error("Failed to open .mat file: " + mat_file);
   }
 
-  MNISTData data;
+  ImageData data;
 
   // Read images
   matvar_t *images_var = Mat_VarRead(matfp, "images");
@@ -107,8 +107,8 @@ MNISTData MatReader::load_mnist(const std::string &mat_file) {
   return data;
 }
 
-void MatReader::print_info(const MNISTData &data) {
-  std::cout << "MNIST Data Info:" << std::endl;
+void MatReader::print_info(const ImageData &data) {
+  std::cout << "Dataset Info:" << std::endl;
   std::cout << "  Number of samples: " << data.num_samples << std::endl;
   std::cout << "  Image size: " << data.image_height << "x" << data.image_width
             << std::endl;

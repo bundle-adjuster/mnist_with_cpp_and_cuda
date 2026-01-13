@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to download MNIST dataset and convert to .mat format for C++ consumption.
+Script to download MNIST and Fashion-MNIST datasets and convert to .mat format for C++ consumption.
 Supports both PyTorch and TensorFlow datasets.
 """
 
@@ -11,20 +11,27 @@ import os
 from pathlib import Path
 
 
-def download_mnist_torch():
-    """Download MNIST using PyTorch."""
+def download_mnist_torch(dataset='mnist'):
+    """Download MNIST or Fashion-MNIST using PyTorch."""
     try:
         import torch
         from torchvision import datasets, transforms
         
-        print("Downloading MNIST using PyTorch...")
+        dataset_name = 'Fashion-MNIST' if dataset == 'fashion' else 'MNIST'
+        print(f"Downloading {dataset_name} using PyTorch...")
         
         # Create data directory
         data_dir = Path("data")
         data_dir.mkdir(exist_ok=True)
         
+        # Select dataset class
+        if dataset == 'fashion':
+            dataset_class = datasets.FashionMNIST
+        else:
+            dataset_class = datasets.MNIST
+        
         # Download training data
-        train_dataset = datasets.MNIST(
+        train_dataset = dataset_class(
             root=str(data_dir),
             train=True,
             download=True,
@@ -32,7 +39,7 @@ def download_mnist_torch():
         )
         
         # Download test data
-        test_dataset = datasets.MNIST(
+        test_dataset = dataset_class(
             root=str(data_dir),
             train=False,
             download=True,
@@ -67,15 +74,19 @@ def download_mnist_torch():
         raise ImportError("PyTorch not installed. Install with: pip install torch torchvision")
 
 
-def download_mnist_tf():
-    """Download MNIST using TensorFlow."""
+def download_mnist_tf(dataset='mnist'):
+    """Download MNIST or Fashion-MNIST using TensorFlow."""
     try:
         import tensorflow as tf
         
-        print("Downloading MNIST using TensorFlow...")
+        dataset_name = 'Fashion-MNIST' if dataset == 'fashion' else 'MNIST'
+        print(f"Downloading {dataset_name} using TensorFlow...")
         
-        # Download MNIST
-        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+        # Download dataset
+        if dataset == 'fashion':
+            (x_train, y_train), (x_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
+        else:
+            (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
         
         # Convert to float32 and normalize
         x_train = x_train.astype(np.float32) / 255.0
@@ -89,15 +100,16 @@ def download_mnist_tf():
         raise ImportError("TensorFlow not installed. Install with: pip install tensorflow")
 
 
-def save_to_mat(train_data, train_labels, test_data, test_labels, output_dir="data"):
-    """Save MNIST data to .mat files."""
+def save_to_mat(train_data, train_labels, test_data, test_labels, output_dir="data", dataset='mnist'):
+    """Save dataset to .mat files."""
     output_path = Path(output_dir)
     output_path.mkdir(exist_ok=True)
     
-    print(f"Saving data to {output_path}...")
+    prefix = 'fashion_mnist' if dataset == 'fashion' else 'mnist'
+    print(f"Saving {prefix.upper()} data to {output_path}...")
     
     # Save training data
-    train_file = output_path / "mnist_train.mat"
+    train_file = output_path / f"{prefix}_train.mat"
     sio.savemat(
         str(train_file),
         {
@@ -112,7 +124,7 @@ def save_to_mat(train_data, train_labels, test_data, test_labels, output_dir="da
     print(f"  Shape: {train_data.shape}, Labels: {train_labels.shape}")
     
     # Save test data
-    test_file = output_path / "mnist_test.mat"
+    test_file = output_path / f"{prefix}_test.mat"
     sio.savemat(
         str(test_file),
         {
@@ -128,7 +140,13 @@ def save_to_mat(train_data, train_labels, test_data, test_labels, output_dir="da
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Download MNIST and convert to .mat format')
+    parser = argparse.ArgumentParser(description='Download MNIST or Fashion-MNIST and convert to .mat format')
+    parser.add_argument(
+        '--dataset',
+        choices=['mnist', 'fashion'],
+        default='mnist',
+        help='Dataset to download: mnist or fashion (default: mnist)'
+    )
     parser.add_argument(
         '--source',
         choices=['torch', 'tf', 'auto'],
@@ -146,20 +164,21 @@ def main():
     
     # Try to download based on source preference
     if args.source == 'torch':
-        train_data, train_labels, test_data, test_labels = download_mnist_torch()
+        train_data, train_labels, test_data, test_labels = download_mnist_torch(args.dataset)
     elif args.source == 'tf':
-        train_data, train_labels, test_data, test_labels = download_mnist_tf()
+        train_data, train_labels, test_data, test_labels = download_mnist_tf(args.dataset)
     else:  # auto
         try:
-            train_data, train_labels, test_data, test_labels = download_mnist_torch()
+            train_data, train_labels, test_data, test_labels = download_mnist_torch(args.dataset)
         except ImportError:
             print("PyTorch not available, trying TensorFlow...")
-            train_data, train_labels, test_data, test_labels = download_mnist_tf()
+            train_data, train_labels, test_data, test_labels = download_mnist_tf(args.dataset)
     
     # Save to .mat files
-    save_to_mat(train_data, train_labels, test_data, test_labels, args.output_dir)
+    save_to_mat(train_data, train_labels, test_data, test_labels, args.output_dir, args.dataset)
     
-    print("\nDone! MNIST data saved in .mat format.")
+    dataset_name = 'Fashion-MNIST' if args.dataset == 'fashion' else 'MNIST'
+    print(f"\nDone! {dataset_name} data saved in .mat format.")
 
 
 if __name__ == "__main__":

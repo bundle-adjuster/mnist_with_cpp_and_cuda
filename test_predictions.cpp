@@ -3,17 +3,21 @@
 #include <iomanip>
 #include <iostream>
 
-int main() {
-  std::cout << "Loading test data..." << std::endl;
-  MNISTData test_data = MatReader::load_mnist("../data/mnist_test.mat");
+int main(int argc, char* argv[]) {
+  // Default to MNIST, but allow override via command line
+  std::string test_file = (argc > 1) ? argv[1] : "../data/mnist_test.mat";
+  std::string model_file = (argc > 2) ? argv[2] : "mnist_model.bin";
+  
+  std::cout << "Loading test data from: " << test_file << std::endl;
+  ImageData test_data = MatReader::load_dataset(test_file);
 
   // Create network and try to load trained model
   std::vector<int> layer_sizes = {784, 128, 64, 10};
   NeuralNetwork nn(layer_sizes, 0.1f, 32);
 
   try {
-    nn.load_weights("mnist_model.bin");
-    std::cout << "Loaded trained model" << std::endl;
+    nn.load_weights(model_file);
+    std::cout << "Loaded trained model: " << model_file << std::endl;
   } catch (const std::exception &e) {
     std::cout << "Could not load model: " << e.what() << std::endl;
     return 1;
